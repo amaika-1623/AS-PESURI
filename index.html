@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Mena Muria Klok, Radio & Eeuwkalender</title>
+
+  <!-- Web App Meta Tags voor Volledig Scherm -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MM Klok & Kalender">
+  <meta name="theme-color" content="#0f0d0b">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'gold-light': '#f5d77f',
+            'gold-mid': '#c89d2a',
+            'gold-dark': '#826211',
+            'dark-bg': '#0f0d0b',
+            'rms-blue': '#0033a0',
+            'rms-white': '#ffffff',
+            'rms-green': '#007a33',
+            'rms-red': '#d52b1e',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg-color: #0f0d0b;
+      --gold-light: #f5d77f;
+      --gold-mid: #c89d2a;
+      --gold-dark: #826211;
+      --rms-blue: #0033a0;
+      --rms-white: #ffffff;
+      --rms-green: #007a33;
+      --rms-red: #d52b1e;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--gold-light);
+      font-family: 'Georgia', 'Times New Roman', serif;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #16120e;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #3a2e1d;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--gold-dark);
+    }
+
+    /* Analog Clock Styles */
+    .clock-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #2d251d 0%, #16120e 70%, #0a0806 100%);
+      box-shadow: 0 0 35px rgba(0, 0, 0, 0.95), inset 0 0 20px rgba(0, 0, 0, 0.85);
+      border: 6px solid #231c15;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .rope-ring {
+      position: absolute;
+      width: 272px;
+      height: 272px;
+      border-radius: 50%;
+      border: 3px dashed var(--gold-dark);
+      opacity: 0.6;
+    }
+
+    .number {
+      position: absolute;
+      font-weight: bold;
+      font-size: 1.3rem;
+      color: var(--gold-light);
+      text-shadow: 1px 1px 3px #000, 0 0 6px var(--gold-dark);
+      text-align: center;
+    }
+
+    .num-12 { top: 8px; }
+    .num-1  { top: 20px; right: 65px; }
+    .num-2  { top: 60px; right: 20px; }
+    .num-3  { right: 10px; top: 130px; }
+    .num-4  { bottom: 60px; right: 20px; }
+    .num-5  { bottom: 20px; right: 65px; }
+    .num-6  { bottom: 8px; }
+    .num-7  { bottom: 20px; left: 65px; }
+    .num-8  { bottom: 60px; left: 20px; }
+    .num-9  { left: 10px; top: 130px; }
+    .num-10 { top: 60px; left: 20px; }
+    .num-11 { top: 20px; left: 65px; }
+
+    .emblem-wrapper {
+      position: absolute;
+      width: 210px;
+      height: 210px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .arc-text-top {
+      position: absolute;
+      top: 30px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      color: var(--gold-light);
+      text-shadow: 1px 1px 2px #000;
+    }
+
+    .center-title {
+      position: absolute;
+      top: 46px;
+      font-size: 1.1rem;
+      font-weight: 900;
+      letter-spacing: 3px;
+      color: var(--gold-light);
+      text-shadow: 2px 2px 4px #000;
+      z-index: 3;
+    }
+
+    .wings-svg {
+      position: absolute;
+      width: 190px;
+      height: 80px;
+      top: 58px;
+      z-index: 1;
+      filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.8));
+    }
+
+    .center-shield {
+      position: absolute;
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #a32a2a 0%, #4a0d0d 100%);
+      border: 2px solid var(--gold-mid);
+      top: 68px;
+      z-index: 2;
+      box-shadow: inset 0 0 10px #000;
+    }
+
+    .ribbon-dates {
+      position: absolute;
+      top: 118px;
+      width: 155px;
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+      font-size: 0.8rem;
+      color: var(--gold-light);
+      z-index: 3;
+      text-shadow: 1px 1px 3px #000;
+    }
+
+    .arc-text-bottom {
+      position: absolute;
+      bottom: 34px;
+      font-size: 1rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      color: var(--gold-light);
+      text-shadow: 1px 1px 2px #000;
+    }
+
+    .date-foundation {
+      position: absolute;
+      bottom: 18px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      color: var(--gold-light);
+    }
+
+    .hand {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform-origin: bottom center;
+      border-radius: 4px;
+      z-index: 10;
+      background: linear-gradient(to right, var(--gold-dark), var(--gold-light), var(--gold-mid));
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.8);
+    }
+
+    .hour-hand { width: 6px; height: 50px; margin-left: -3px; }
+    .minute-hand { width: 4px; height: 75px; margin-left: -2px; }
+    .second-hand { width: 2px; height: 85px; margin-left: -1px; background: var(--rms-red); z-index: 11; }
+
+    .center-cap {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--gold-light), var(--gold-dark));
+      border: 2px solid #111;
+      z-index: 12;
+    }
+
+    /* Custom Input and Select elements */
+    .golden-input {
+      background: #1a1510;
+      color: var(--gold-light);
+      border: 1px solid var(--gold-mid);
+      border-radius: 6px;
+      padding: 6px 10px;
+      outline: none;
+      transition: all 0.2s ease;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    .golden-input:focus {
+      border-color: var(--gold-light);
+      box-shadow: 0 0 8px rgba(245, 215, 127, 0.3);
+    }
+
+    .golden-button {
+      background: linear-gradient(to bottom, var(--gold-light), var(--gold-mid));
+      color: #0d0a07;
+      font-weight: bold;
+      border: 1px solid var(--gold-light);
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    }
+    .golden-button:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 0 10px rgba(200, 157, 42, 0.5);
+    }
+    .golden-button:active {
+      transform: scale(0.97);
+    }
+
+    /* Calendar Grid styling */
+    .calendar-day-header {
+      color: var(--gold-mid);
+      font-weight: bold;
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(200, 157, 42, 0.2);
+    }
+
+    .calendar-cell {
+      min-height: 42px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      border: 1px solid transparent;
+      font-size: 0.95rem;
+    }
+
+    .calendar-cell:hover:not(.empty-cell) {
+      background: rgba(200, 157, 42, 0.15);
+      border-color: var(--gold-mid);
+    }
+
+    .calendar-cell.today {
+      background: rgba(213, 43, 30, 0.25) !important;
+      border: 1px solid var(--rms-red) !important;
+      color: #fff !important;
+      font-weight: bold;
+    }
+
+    .calendar-cell.selected {
+      background: rgba(245, 215, 127, 0.25) !important;
+      border: 1px solid var(--gold-light) !important;
+      box-shadow: 0 0 8px rgba(245, 215, 127, 0.4);
+      font-weight: bold;
+    }
+
+    .calendar-cell.weekend {
+      color: #e5a0a0;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center p-3 sm:p-6">
+
+  <div class="w-full max-w-6xl flex flex-col items-center gap-6">
+
+    <!-- Header Title -->
+    <header class="text-center mt-2">
+      <h1 class="text-2xl sm:text-3xl font-black tracking-widest text-gold-light drop-shadow-md">
+        MENA MURIA
+      </h1>
+      <p class="text-xs sm:text-sm text-gold-mid tracking-wider mt-1 font-semibold">
+        KLOK • RADIO STREAM • EEUWKALENDER
+      </p>
+    </header>
+
+    <!-- Main Grid Layout (Clock & Radio Left, Eternal Calendar Right) -->
+    <main class="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- LEFT COLUMN: Clock & Radio Player -->
+      <section class="lg:col-span-5 flex flex-col items-center gap-5 bg-black/40 p-4 sm:p-6 rounded-2xl border border-gold-dark/40 shadow-2xl backdrop-blur-sm">
+
+        <!-- Analog Clock Display -->
+        <div class="clock-container">
+          <div class="rope-ring"></div>
+
+          <div class="number num-12">12</div>
+          <div class="number num-1">1</div>
+          <div class="number num-2">2</div>
+          <div class="number num-3">3</div>
+          <div class="number num-4">4</div>
+          <div class="number num-5">5</div>
+          <div class="number num-6">6</div>
+          <div class="number num-7">7</div>
+          <div class="number num-8">8</div>
+          <div class="number num-9">9</div>
+          <div class="number num-10">10</div>
+          <div class="number num-11">11</div>
+
+          <div class="emblem-wrapper">
+            <div class="arc-text-top">LEA LOHI SAMASURU</div>
+            <div class="center-title">★ MENA ★</div>
+            
+            <svg class="wings-svg" viewBox="0 0 200 80">
+              <path d="M 100 40 C 70 5, 30 10, 0 25 C 20 40, 60 48, 100 40 Z" fill="var(--rms-blue)"/>
+              <path d="M 100 40 C 70 20, 30 23, 10 33 C 30 48, 70 52, 100 40 Z" fill="var(--rms-white)"/>
+              <path d="M 100 40 C 70 30, 40 33, 20 42 C 40 55, 70 55, 100 40 Z" fill="var(--rms-green)"/>
+              <path d="M 100 40 C 70 38, 50 40, 30 50 C 50 60, 75 57, 100 40 Z" fill="var(--rms-red)"/>
+
+              <path d="M 100 40 C 130 5, 170 10, 200 25 C 180 40, 140 48, 100 40 Z" fill="var(--rms-blue)"/>
+              <path d="M 100 40 C 130 20, 170 23, 190 33 C 170 48, 130 52, 100 40 Z" fill="var(--rms-white)"/>
+              <path d="M 100 40 C 130 30, 160 33, 180 42 C 160 55, 130 55, 100 40 Z" fill="var(--rms-green)"/>
+              <path d="M 100 40 C 130 38, 150 40, 170 50 C 150 60, 125 57, 100 40 Z" fill="var(--rms-red)"/>
+            </svg>
+
+            <div class="center-shield"></div>
+            
+            <div class="ribbon-dates">
+              <span>25</span>
+              <span>04</span>
+            </div>
+
+            <div class="arc-text-bottom">MURIA</div>
+            <div class="date-foundation">25-04-1950</div>
+          </div>
+
+          <div class="hand hour-hand" id="hour"></div>
+          <div class="hand minute-hand" id="minute"></div>
+          <div class="hand second-hand" id="second"></div>
+          <div class="center-cap"></div>
+        </div>
+
+        <div class="text-2xl font-bold tracking-widest text-gold-light text-shadow mt-1">
+          ABORU
+        </div>
+
+        <!-- Digital Time Display -->
+        <div class="bg-black/80 px-6 py-2 rounded-lg border border-gold-dark/60 text-center w-full max-w-xs shadow-inner">
+          <div class="text-gold-mid text-xs font-sans tracking-wide" id="date-display">datum laden...</div>
+          <div class="text-2xl font-mono font-bold text-gold-light tracking-widest mt-0.5" id="digital-clock">00:00:00</div>
+        </div>
+
+        <!-- Media Control Panel -->
+        <div class="w-full flex flex-col gap-3 bg-black/60 p-4 rounded-xl border border-gold-dark/50">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-gold-mid tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-radio text-gold-light"></i> STREAM PLAYER
+            </span>
+            <span class="text-[10px] text-gray-400 bg-gray-900 px-2 py-0.5 rounded border border-gray-800" id="mediaTypeLabel">Audio</span>
+          </div>
+
+          <div class="flex gap-2">
+            <select id="stationSelect" class="golden-input text-xs flex-1">
+              <optgroup label="📻 Radio Streams (Achtergrond)">
+                <option value="audio:https://stream.100p.nl/100p.mp3">100% NL</option>
+                <option value="audio:https://stream.radiosunrise.nl/system/stream">Radio Sunrise (NL)</option>
+                <option value="audio:https://icecast.vrt.be/mnm-high.mp3">MNM (België)</option>
+                <option value="audio:https://stream.zeno.fm/f3wvbb1278uvv">Radio DMS 102.7 Ambon</option>
+              </optgroup>
+              <optgroup label="📺 Live Video (YouTube)">
+                <option value="yt:jfKfPfyJRdk">Lofi Girl (Live Stream)</option>
+              </optgroup>
+            </select>
+            <button id="playBtn" class="golden-button px-4 py-2 text-xs flex items-center gap-1">
+              <i class="fa-solid fa-play" id="playIcon"></i> <span id="playBtnText">Play</span>
+            </button>
+          </div>
+
+          <input type="url" id="customUrlInput" class="golden-input text-xs w-full" placeholder="Plak direct YouTube of audio stream URL...">
+
+          <!-- Embedded YouTube Video Container -->
+          <div class="w-full h-40 bg-black rounded-lg border border-gold-mid/40 overflow-hidden hidden relative" id="videoWrapper">
+            <iframe id="videoPlayer" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-presentation allow-forms" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+          </div>
+
+          <div class="text-[11px] text-gold-mid text-center italic" id="mediaStatus">Speler gereed</div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT COLUMN: Eeuwkalender (Perpetual Calendar) -->
+      <section class="lg:col-span-7 flex flex-col bg-black/40 p-4 sm:p-6 rounded-2xl border border-gold-dark/40 shadow-2xl backdrop-blur-sm h-full justify-between">
+
+        <div>
+          <!-- Calendar Header Controls -->
+          <div class="flex flex-col sm:flex-row justify-between items-center gap-3 pb-4 border-b border-gold-dark/40">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-calendar-days text-xl text-gold-light"></i>
+              <h2 class="text-lg font-bold tracking-wide text-gold-light">EEUWKALENDER</h2>
+            </div>
+
+            <!-- Fast Navigation Controls -->
+            <div class="flex items-center gap-2">
+              <button id="todayBtn" class="golden-button text-xs px-3 py-1.5 flex items-center gap-1">
+                <i class="fa-solid fa-calendar-day"></i> Vandaag
+              </button>
+              <div class="flex items-center gap-1 bg-black/60 p-1 rounded-lg border border-gold-dark/40">
+                <button id="prevYearBtn" class="px-2 py-1 text-xs text-gold-mid hover:text-gold-light rounded hover:bg-gold-dark/20" title="Vorig Jaar"><i class="fa-solid fa-angles-left"></i></button>
+                <button id="prevMonthBtn" class="px-2 py-1 text-xs text-gold-mid hover:text-gold-light rounded hover:bg-gold-dark/20" title="Vorige Maand"><i class="fa-solid fa-chevron-left"></i></button>
+                <button id="nextMonthBtn" class="px-2 py-1 text-xs text-gold-mid hover:text-gold-light rounded hover:bg-gold-dark/20" title="Volgende Maand"><i class="fa-solid fa-chevron-right"></i></button>
+                <button id="nextYearBtn" class="px-2 py-1 text-xs text-gold-mid hover:text-gold-light rounded hover:bg-gold-dark/20" title="Volgend Jaar"><i class="fa-solid fa-angles-right"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Month & Year Selector Controls -->
+          <div class="grid grid-cols-12 gap-2 my-4">
+            <select id="calendarMonthSelect" class="col-span-7 sm:col-span-5 golden-input text-sm font-semibold">
+              <option value="0">Januari</option>
+              <option value="1">Februari</option>
+              <option value="2">Maart</option>
+              <option value="3">April</option>
+              <option value="4">Mei</option>
+              <option value="5">Juni</option>
+              <option value="6">Juli</option>
+              <option value="7">Augustus</option>
+              <option value="8">September</option>
+              <option value="9">Oktober</option>
+              <option value="10">November</option>
+              <option value="11">December</option>
+            </select>
+
+            <input type="number" id="calendarYearInput" class="col-span-5 sm:col-span-4 golden-input text-sm font-semibold text-center" min="1" max="9999" value="2026">
+
+            <button id="jumpDateBtn" class="col-span-12 sm:col-span-3 golden-button text-xs py-2">
+              Ga naar jaar
+            </button>
+          </div>
+
+          <!-- Info bar for current month stats -->
+          <div class="flex justify-between items-center text-xs text-gold-mid mb-3 px-1">
+            <span id="calendarTitleDisplay" class="font-bold text-sm text-gold-light">...</span>
+            <span id="leapYearStatus" class="bg-gold-dark/20 px-2 py-0.5 rounded border border-gold-dark/40 text-[11px]">Schrikkeljaar</span>
+          </div>
+
+          <!-- Days of Week Header -->
+          <div class="grid grid-cols-7 gap-1 text-center font-bold mb-1">
+            <div class="calendar-day-header">Ma</div>
+            <div class="calendar-day-header">Di</div>
+            <div class="calendar-day-header">Wo</div>
+            <div class="calendar-day-header">Do</div>
+            <div class="calendar-day-header">Vr</div>
+            <div class="calendar-day-header text-red-400">Za</div>
+            <div class="calendar-day-header text-red-400">Zo</div>
+          </div>
+
+          <!-- Calendar Days Grid -->
+          <div id="calendarGrid" class="grid grid-cols-7 gap-1">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Selected Date Details Banner -->
+        <div class="mt-6 p-3 bg-black/70 rounded-xl border border-gold-dark/50 flex flex-col sm:flex-row justify-between items-center gap-2">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-circle-info text-gold-mid"></i>
+            <span class="text-xs text-gray-300">Geselecteerde datum:</span>
+            <span id="selectedDateText" class="text-xs font-bold text-gold-light">Laden...</span>
+          </div>
+          <div class="text-[11px] text-gold-mid italic" id="dayOfYearText">Dag van het jaar: -</div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-gold-dark mt-2 mb-4">
+      Mena Muria Klok & Eeuwkalender • RMS Aboru • 1950 - <span id="currentYearFooter">2026</span>
+    </footer>
+
+  </div>
+
+  <audio id="audioPlayer" preload="auto" crossorigin="anonymous"></audio>
+
+  <script>
+    /* =========================================================================
+       1. ANALOG & DIGITAL CLOCK ENGINE
+       ========================================================================= */
+    function updateClock() {
+      const now = new Date();
+      const seconds = now.getSeconds();
+      const minutes = now.getMinutes();
+      const hours = now.getHours();
+
+      const secDeg = (seconds / 60) * 360;
+      const minDeg = ((minutes + seconds / 60) / 60) * 360;
+      const hourDeg = (((hours % 12) + minutes / 60) / 12) * 360;
+
+      document.getElementById('second').style.transform = `rotate(${secDeg}deg)`;
+      document.getElementById('minute').style.transform = `rotate(${minDeg}deg)`;
+      document.getElementById('hour').style.transform = `rotate(${hourDeg}deg)`;
+
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('date-display').innerText = now.toLocaleDateString('nl-NL', options);
+      
+      const pad = (num) => String(num).padStart(2, '0');
+      document.getElementById('digital-clock').innerText = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+      document.getElementById('currentYearFooter').innerText = now.getFullYear();
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    /* =========================================================================
+       2. MEDIA PLAYER & BACKGROUND AUDIO ENGINE
+       ========================================================================= */
+    const audioPlayer = document.getElementById('audioPlayer');
+    const videoPlayer = document.getElementById('videoPlayer');
+    const videoWrapper = document.getElementById('videoWrapper');
+    const playBtn = document.getElementById('playBtn');
+    const playIcon = document.getElementById('playIcon');
+    const playBtnText = document.getElementById('playBtnText');
+    const stationSelect = document.getElementById('stationSelect');
+    const customUrlInput = document.getElementById('customUrlInput');
+    const mediaStatus = document.getElementById('mediaStatus');
+    const mediaTypeLabel = document.getElementById('mediaTypeLabel');
+
+    let isPlaying = false;
+
+    customUrlInput.addEventListener('input', () => { 
+      if (isPlaying) stopAllMedia(); 
+    });
+    
+    stationSelect.addEventListener('change', () => { 
+      customUrlInput.value = ''; 
+      if (isPlaying) playMedia(); 
+    });
+
+    function extractYouTubeId(url) {
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+      const match = url.match(regExp);
+      return (match && match[2].length === 11) ? match[2] : null;
+    }
+
+    function stopAllMedia() {
+      audioPlayer.pause();
+      audioPlayer.removeAttribute('src');
+      audioPlayer.load();
+
+      videoPlayer.src = "";
+      videoWrapper.classList.add('hidden');
+
+      isPlaying = false;
+      playIcon.className = "fa-solid fa-play";
+      playBtnText.innerText = 'Play';
+      mediaStatus.innerText = 'Speler uitgeschakeld';
+      mediaTypeLabel.innerText = 'Audio';
+    }
+
+    function setupMediaSession(title) {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: title || 'Mena Muria Radio',
+          artist: 'Mena Muria Klok',
+          album: 'Live Audio Stream'
+        });
+        
+        navigator.mediaSession.setActionHandler('play', () => {
+          audioPlayer.play();
+          isPlaying = true;
+          playIcon.className = "fa-solid fa-pause";
+          playBtnText.innerText = 'Stop';
+        });
+
+        navigator.mediaSession.setActionHandler('pause', () => {
+          audioPlayer.pause();
+          isPlaying = false;
+          playIcon.className = "fa-solid fa-play";
+          playBtnText.innerText = 'Play';
+        });
+      }
+    }
+
+    function playMedia() {
+      stopAllMedia();
+
+      let targetVal = customUrlInput.value.trim() !== '' ? customUrlInput.value.trim() : stationSelect.value;
+
+      if (!targetVal) {
+        mediaStatus.innerText = 'Voer een URL in of kies een zender!';
+        return;
+      }
+
+      const ytId = extractYouTubeId(targetVal);
+
+      if (ytId || targetVal.startsWith('yt:')) {
+        let finalYtId = ytId ? ytId : targetVal.replace('yt:', '');
+        let embedUrl = `https://www.youtube-nocookie.com/embed/${finalYtId}?autoplay=1&playsinline=1&modestbranding=1&rel=0`;
+
+        videoWrapper.classList.remove('hidden');
+        videoPlayer.src = embedUrl;
+        
+        isPlaying = true;
+        playIcon.className = "fa-solid fa-stop";
+        playBtnText.innerText = 'Stop';
+        mediaStatus.innerText = 'Live videostream actief';
+        mediaTypeLabel.innerText = 'Video';
+      } else {
+        let audioUrl = targetVal.replace('audio:', '');
+        if (audioUrl.startsWith('http://')) {
+          audioUrl = 'https://corsproxy.io/?' + encodeURIComponent(audioUrl);
+        }
+
+        mediaStatus.innerText = 'Verbinden met audio stream...';
+        audioPlayer.src = audioUrl;
+
+        setupMediaSession('Live Radiostream');
+
+        const playPromise = audioPlayer.play();
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            isPlaying = true;
+            playIcon.className = "fa-solid fa-pause";
+            playBtnText.innerText = 'Stop';
+            mediaStatus.innerText = 'Audio speelt op achtergrond...';
+            mediaTypeLabel.innerText = 'Audio Stream';
+          }).catch(err => {
+            console.error(err);
+            mediaStatus.innerText = 'Fout bij laden van audio stream';
+          });
+        }
+      }
+    }
+
+    playBtn.addEventListener('click', () => {
+      if (!isPlaying) {
+        playMedia();
+      } else {
+        stopAllMedia();
+      }
+    });
+
+    /* =========================================================================
+       3. EEUWKALENDER (PERPETUAL CALENDAR) ENGINE
+       ========================================================================= */
+    const calendarMonthSelect = document.getElementById('calendarMonthSelect');
+    const calendarYearInput = document.getElementById('calendarYearInput');
+    const jumpDateBtn = document.getElementById('jumpDateBtn');
+    const prevMonthBtn = document.getElementById('prevMonthBtn');
+    const nextMonthBtn = document.getElementById('nextMonthBtn');
+    const prevYearBtn = document.getElementById('prevYearBtn');
+    const nextYearBtn = document.getElementById('nextYearBtn');
+    const todayBtn = document.getElementById('todayBtn');
+    
+    const calendarGrid = document.getElementById('calendarGrid');
+    const calendarTitleDisplay = document.getElementById('calendarTitleDisplay');
+    const leapYearStatus = document.getElementById('leapYearStatus');
+    const selectedDateText = document.getElementById('selectedDateText');
+    const dayOfYearText = document.getElementById('dayOfYearText');
+
+    const monthNames = [
+      "Januari", "Februari", "Maart", "April", "Mei", "Juni", 
+      "Juli", "Augustus", "September", "Oktober", "November", "December"
+    ];
+
+    const dayNames = ["Zondag", "Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag"];
+
+    let displayedYear = new Date().getFullYear();
+    let displayedMonth = new Date().getMonth(); // 0 - 11
+    let selectedDate = new Date();
+
+    function isLeapYear(year) {
+      return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    }
+
+    function getDaysInMonth(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
+
+    function getDayOfYear(date) {
+      const start = new Date(date.getFullYear(), 0, 0);
+      const diff = date - start + (start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000;
+      const oneDay = 1000 * 60 * 60 * 24;
+      return Math.floor(diff / oneDay);
+    }
+
+    function renderCalendar() {
+      calendarGrid.innerHTML = '';
+
+      // Update Form Control Values
+      calendarMonthSelect.value = displayedMonth;
+      calendarYearInput.value = displayedYear;
+
+      // Update Title Bar
+      calendarTitleDisplay.innerText = `${monthNames[displayedMonth]} ${displayedYear}`;
+      
+      if (isLeapYear(displayedYear)) {
+        leapYearStatus.innerText = "Schrikkeljaar (366 dagen)";
+        leapYearStatus.className = "bg-gold-dark/40 text-gold-light px-2 py-0.5 rounded border border-gold-mid text-[11px] font-semibold";
+      } else {
+        leapYearStatus.innerText = "Standaardjaar (365 dagen)";
+        leapYearStatus.className = "bg-black/40 text-gray-400 px-2 py-0.5 rounded border border-gray-800 text-[11px]";
+      }
+
+      // First Day of Month Index (Adjusted so Monday = 0, Sunday = 6)
+      const firstDayObj = new Date(displayedYear, displayedMonth, 1);
+      let startingDay = firstDayObj.getDay(); 
+      startingDay = (startingDay === 0) ? 6 : startingDay - 1; // Convert Sunday(0) to 6, Monday(1) to 0
+
+      const totalDays = getDaysInMonth(displayedYear, displayedMonth);
+      const today = new Date();
+
+      // Render Empty Leading Cells for previous month
+      for (let i = 0; i < startingDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'calendar-cell empty-cell opacity-20 text-gray-600';
+        calendarGrid.appendChild(emptyCell);
+      }
+
+      // Render Day Cells
+      for (let day = 1; day <= totalDays; day++) {
+        const cell = document.createElement('div');
+        cell.className = 'calendar-cell';
+
+        const cellDate = new Date(displayedYear, displayedMonth, day);
+        const dayOfWeek = cellDate.getDay();
+
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+          cell.classList.add('weekend');
+        }
+
+        // Check if Today
+        if (day === today.getDate() && displayedMonth === today.getMonth() && displayedYear === today.getFullYear()) {
+          cell.classList.add('today');
+        }
+
+        // Check if Selected Date
+        if (selectedDate && day === selectedDate.getDate() && displayedMonth === selectedDate.getMonth() && displayedYear === selectedDate.getFullYear()) {
+          cell.classList.add('selected');
+        }
+
+        cell.innerHTML = `<span>${day}</span>`;
+
+        cell.addEventListener('click', () => {
+          selectedDate = new Date(displayedYear, displayedMonth, day);
+          renderCalendar();
+          updateSelectedInfo();
+        });
+
+        calendarGrid.appendChild(cell);
+      }
+
+      updateSelectedInfo();
+    }
+
+    function updateSelectedInfo() {
+      if (!selectedDate) return;
+      const dayName = dayNames[selectedDate.getDay()];
+      const dayNum = selectedDate.getDate();
+      const monthName = monthNames[selectedDate.getMonth()];
+      const yearNum = selectedDate.getFullYear();
+
+      selectedDateText.innerText = `${dayName} ${dayNum} ${monthName} ${yearNum}`;
+      dayOfYearText.innerText = `Dag ${getDayOfYear(selectedDate)} van het jaar`;
+    }
+
+    // Event Listeners for Calendar Controls
+    calendarMonthSelect.addEventListener('change', (e) => {
+      displayedMonth = parseInt(e.target.value);
+      renderCalendar();
+    });
+
+    jumpDateBtn.addEventListener('click', () => {
+      const yearVal = parseInt(calendarYearInput.value);
+      if (!isNaN(yearVal) && yearVal >= 1 && yearVal <= 9999) {
+        displayedYear = yearVal;
+        renderCalendar();
+      }
+    });
+
+    calendarYearInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        jumpDateBtn.click();
+      }
+    });
+
+    prevMonthBtn.addEventListener('click', () => {
+      displayedMonth--;
+      if (displayedMonth < 0) {
+        displayedMonth = 11;
+        displayedYear--;
+      }
+      renderCalendar();
+    });
+
+    nextMonthBtn.addEventListener('click', () => {
+      displayedMonth++;
+      if (displayedMonth > 11) {
+        displayedMonth = 0;
+        displayedYear++;
+      }
+      renderCalendar();
+    });
+
+    prevYearBtn.addEventListener('click', () => {
+      displayedYear--;
+      renderCalendar();
+    });
+
+    nextYearBtn.addEventListener('click', () => {
+      displayedYear++;
+      renderCalendar();
+    });
+
+    todayBtn.addEventListener('click', () => {
+      const now = new Date();
+      displayedYear = now.getFullYear();
+      displayedMonth = now.getMonth();
+      selectedDate = new Date();
+      renderCalendar();
+    });
+
+    // Initialize Perpetual Calendar
+    renderCalendar();
+  </script>
+</body>
+</html>
